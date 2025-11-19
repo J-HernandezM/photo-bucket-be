@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 import os
-from app.models.photo import Photo  # noqa: F401
+from app import models  # noqa: F401
 from app.db import Base
 
 from dotenv import load_dotenv
