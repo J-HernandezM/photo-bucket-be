@@ -14,3 +14,21 @@ class User(Base):
 
     def __repr__(self):
         return f"User(id={self.id} username='{self.username}' email='{self.email}' hash='{self.hash}' salt='{self.salt}')"
+
+    def to_dict(self):
+        nullable_fields = []
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if not key.startswith("_")
+            and key
+            and (value is not None or key in nullable_fields)
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        instance = cls()
+        for key, value in data.items():
+            if value is not None and hasattr(cls, key):
+                setattr(instance, key, value)
+        return instance
