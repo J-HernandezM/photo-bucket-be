@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field
 
 
 class PhotoRead(BaseModel):
-    id: int = Field(..., description="Photo ID")
     filename: str = Field(..., description="The original filename of the photo")
     content_type: str = Field(
         ..., description="MIME type of the photo (e.g., 'image/jpeg')"
