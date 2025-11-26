@@ -18,5 +18,18 @@ services:
     ports:
       - 8080:8080
 
+  photo-api:
+    image: photo-api
+    depends_on:
+      - bucketdb
+    build:
+      dockerfile: ./Dockerfile.dev
+    env_file:
+      - .env
+    volumes:
+      - ./:/photo-bucket-fastapi
+    ports:
+      - "8000:80"
+
 volumes:
   postgres_data:
