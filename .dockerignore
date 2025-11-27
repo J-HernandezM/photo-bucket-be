@@ -1,0 +1,54 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+pip-wheel-metadata/
+.eggs/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.installed.cfg
+
+# Test / coverage / cache
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+htmlcov/
+
+# Tooling / IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Logs, databases, OS files
+*.log
+*.sqlite3
+*.db
+*.db-journal
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Environment files and secrets
+.env
+.env.* 
+local_settings.py
+instance/
+
+# Misc
+.webassets-cache/
