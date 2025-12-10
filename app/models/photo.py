@@ -12,6 +12,9 @@ class Photo(Base):
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     date_taken: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_deleted: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
 
     def __repr__(self):
         return (
