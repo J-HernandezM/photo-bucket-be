@@ -13,9 +13,6 @@ class Settings(BaseSettings):
     pg_user: Optional[str] = fake_aws or os.getenv("PG_USER")
     pg_dbname: Optional[str] = fake_aws or os.getenv("PG_DBNAME")
     database_url: Optional[str] = fake_aws or os.getenv("DATABASE_URL")
-    container_database_url: Optional[str] = fake_aws or os.getenv(
-        "CONTAINER_DATABASE_URL"
-    )
 
     # model_config = SettingsConfigDict(env_file=".env")
 
