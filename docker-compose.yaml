@@ -26,6 +26,8 @@ services:
       dockerfile: ./Dockerfile.dev
     env_file:
       - .env
+    environment:
+      DATABASE_URL: ${CONTAINER_DATABASE_URL}
     volumes:
       - ./:/photo-bucket-fastapi
     ports:

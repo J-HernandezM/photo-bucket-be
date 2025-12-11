@@ -7,9 +7,9 @@ from app.config import settings
 
 app = FastAPI()
 
-app.include_router(users_router.router, prefix="/users")
-app.include_router(photos_router.router, prefix="/photos")
-app.include_router(videos_router.router, prefix="/videos")
+app.include_router(users_router.router, prefix="/users", tags=["users"])
+app.include_router(photos_router.router, prefix="/photos", tags=["photos"])
+app.include_router(videos_router.router, prefix="/videos", tags=["videos"])
 
 
 class Item(BaseModel):

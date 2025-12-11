@@ -19,6 +19,16 @@ class PhotoRepositoryInterface(ABC):
         pass
 
     @abstractmethod
+    async def get_deleted_photo_by_id(self, id: int) -> Photo:
+        """Gets any photo by its id even if deleted"""
+        pass
+
+    @abstractmethod
+    async def get_user_photo_relation(self, photo_id: int, user_id: int) -> UserPhoto:
+        """Gets a user_photo relation by both photo_id and user_id"""
+        pass
+
+    @abstractmethod
     async def get_user_photos(
         self, user_id: int, skip: int = 0, limit: int = 10
     ) -> tuple[list[Photo], int]:
@@ -57,7 +67,23 @@ class PhotoRepository(PhotoRepositoryInterface):
             Photo.is_deleted == False,  # NOQA: E712
         )
         result = await self.session.execute(stmt)
-        return result.scalar_one()
+
+        return result.scalar_one_or_none()
+
+    async def get_deleted_photo_by_id(self, id: int) -> Photo:
+        stmt = select(Photo).where(
+            Photo.id == id,
+        )
+        result = await self.session.execute(stmt)
+
+        return result.scalar_one_or_none()
+
+    async def get_user_photo_relation(self, photo_id: int, user_id: int) -> UserPhoto:
+        stmt = select(UserPhoto).where(
+            UserPhoto.photo_id == photo_id, UserPhoto.user_id == user_id
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def get_user_photos(
         self, user_id: int, skip: int = 0, limit: int = 10
@@ -77,11 +103,13 @@ class PhotoRepository(PhotoRepositoryInterface):
         count_stmt = (
             select(func.count())
             .select_from(Photo)
-            .join(UserPhoto, UserPhoto.photo_id == user_id)
-            .where(UserPhoto.user_id == user_id)
+            .join(UserPhoto, UserPhoto.photo_id == Photo.id)
+            .where(
+                UserPhoto.user_id == user_id, Photo.is_deleted == False  # NOQA: E712
+            )
         )
         total_result = await self.session.execute(count_stmt)
-        total = total_result.scalar_one()
+        total = total_result.scalar_one_or_none()
 
         return photos, total
 
