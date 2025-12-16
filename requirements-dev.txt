@@ -1,1 +1,3 @@
 -r requirements.txt
+awscli-local
+types-aioboto3[essential]
