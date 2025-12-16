@@ -1,3 +1,4 @@
+from logging import Logger, getLogger
 import os
 from typing import Optional
 from pydantic_settings import BaseSettings
@@ -14,7 +15,11 @@ class Settings(BaseSettings):
     pg_dbname: Optional[str] = fake_aws or os.getenv("PG_DBNAME")
     database_url: Optional[str] = fake_aws or os.getenv("DATABASE_URL")
 
+    aws_endpoint_url: Optional[str] = os.getenv("AWS_ENDPOINT_URL")
+    aws_region: str = os.getenv("AWS_REGION") or "us-east-1"
     # model_config = SettingsConfigDict(env_file=".env")
+
+    logger: Logger = getLogger("photobucket")
 
 
 settings = Settings()
