@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Description: |
+  PhotoBucket infrastructure stack
+
+# # 1. Global Settings (Optional but Recommended)
+# # These settings apply to all resources of the specified type unless overridden.
+# Globals:
+#   Function:
+#     Timeout: 3 # Default timeout for all Lambda functions in the template (in seconds)
+#     MemorySize: 128 # Default memory size for all Lambda functions (in MB)
+#     Runtime: nodejs20.x # Default runtime for all Lambda functions
+#   Api:
+#     OpenApiVersion: '3.0.1'
+
+# # 2. Parameters (Optional)
+# # Used for input values that can be passed to the template at deployment time.
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, prod]
+    Description: The target deployment environment name.
+
+# 3. Resources (Required)
+# The core section where you define your AWS resources.
+Resources:
+  LocalBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub photo-bucket-${EnvironmentName}
+
+# # 4. Outputs (Optional but Recommended)
+# # Used to display important information after the stack is created.
+# Outputs:
+#   ApiGatewayEndpoint:
+#     Description: "API Gateway endpoint URL for Prod environment"
+#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+#   LambdaFunctionName:
+#     Description: "The name of the Lambda function"
+#     Value: !Ref MyExampleFunction
