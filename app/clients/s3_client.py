@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import asyncio
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from aioboto3 import Session
@@ -34,6 +35,16 @@ class AwsS3Client(AwsS3ClientInterface):
         self._bucket = bucket
         self._expiration = presigned_expiration_in_seconds
 
+    @asynccontextmanager
+    async def _get_client(self):
+        """Reusable client context manager"""
+        async with self._session.client(
+            "s3",
+            endpoint_url=settings.aws_endpoint_url,
+            region_name=settings.aws_region,
+        ) as client:
+            yield client
+
     async def _upload_file(
         self, path_to_s3: str, file: Path, s3_client: S3Client
     ) -> str:
@@ -55,20 +66,12 @@ class AwsS3Client(AwsS3ClientInterface):
         return f"s3://{self._bucket}/{key}"
 
     async def upload_file(self, path_to_s3: str, file: Path) -> str:
-        async with self._session.client(
-            "s3",
-            endpoint_url=settings.aws_endpoint_url,
-            region_name=settings.aws_region,
-        ) as s3_client:
+        async with self._get_client() as s3_client:
             urn = await self._upload_file(path_to_s3, file=file, s3_client=s3_client)
         return urn
 
     async def bulk_upload_file(self, path_to_s3: str, files: list[Path]) -> list[str]:
-        async with self._session.client(
-            "s3",
-            endpoint_url=settings.aws_endpoint_url,
-            region_name=settings.aws_region,
-        ) as s3_client:
+        async with self._get_client() as s3_client:
             tasks = [
                 self._upload_file(path_to_s3=path_to_s3, file=f, s3_client=s3_client)
                 for f in files
@@ -81,11 +84,7 @@ class AwsS3Client(AwsS3ClientInterface):
         prefix = path_to_s3.strip("/")
         key = f"{prefix}/{filename}" if prefix else filename
 
-        async with self._session.client(
-            "s3",
-            endpoint_url=settings.aws_endpoint_url,
-            region_name=settings.aws_region,
-        ) as s3_client:
+        async with self._get_client() as s3_client:
             try:
                 url = await s3_client.generate_presigned_url(
                     "get_object",
