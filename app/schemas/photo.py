@@ -32,7 +32,7 @@ class UserPhotosResponse(BaseModel):
 
 
 class PhotoResponse(BaseModel):
-    description: str = Field(..., description="Result of the photo creation")
+    description: str = Field(..., description="Result of the photo operation")
 
 
 class PhotoCreateResponse(PhotoResponse):
