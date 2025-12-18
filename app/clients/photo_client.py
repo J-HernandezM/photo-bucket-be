@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
 
+from fastapi import UploadFile
+
 from app.schemas.photo import PhotoCreate, PhotoRead, UserPhotosResponse
 from app.services.photo_service import PhotoService
 
 
 class PhotoClientInterface(ABC):
     @abstractmethod
-    async def create_photo(self, photo: PhotoCreate, user_id: int) -> None:
+    async def create_photo(
+        self, photo: PhotoCreate, user_id: int, file: UploadFile
+    ) -> None:
         """Creates a photo in the database"""
         pass
 
@@ -37,8 +41,12 @@ class PhotoClient(PhotoClientInterface):
     def __init__(self, photo_service: PhotoService):
         self.photo_service = photo_service
 
-    async def create_photo(self, photo: PhotoCreate, user_id: int) -> None:
-        return await self.photo_service.create_photo(photo=photo, user_id=user_id)
+    async def create_photo(
+        self, photo: PhotoCreate, user_id: int, file: UploadFile
+    ) -> None:
+        return await self.photo_service.create_photo(
+            photo=photo, user_id=user_id, file=file
+        )
 
     async def get_photo_by_id(self, id: int) -> PhotoRead:
         return await self.photo_service.get_photo_by_id(id=id)

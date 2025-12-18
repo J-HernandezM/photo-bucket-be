@@ -1,3 +1,5 @@
+from fastapi import UploadFile
+from app.clients.s3_client import AwsS3ClientInterface
 from app.exceptions import ForbiddenError, PhotoNotFound
 from app.models.photo import Photo
 from app.repositories.photo_repository import PhotoRepositoryInterface
@@ -5,8 +7,13 @@ from app.schemas.photo import PhotoCreate, PhotoRead, UserPhotosResponse
 
 
 class PhotoService:
-    def __init__(self, photo_repository: PhotoRepositoryInterface):
+    def __init__(
+        self,
+        photo_repository: PhotoRepositoryInterface,
+        s3_client: AwsS3ClientInterface,
+    ):
         self.photo_repository = photo_repository
+        self.s3_client = s3_client
 
     async def _get_photo_model_by_id(self, id: int) -> Photo:
         photo = await self.photo_repository.get_photo_by_id(id)
@@ -33,9 +40,13 @@ class PhotoService:
                 detail="The requested photo does not belongs to the user"
             )
 
-    async def create_photo(self, photo: PhotoCreate, user_id: int) -> None:
+    async def create_photo(
+        self, photo: PhotoCreate, user_id: int, file: UploadFile
+    ) -> None:
         # TODO: add user validation later
-        photo_model = Photo(**photo.model_dump())
+        path = "mocked/path"  # TODO: define path, probably use user identifier as main folder
+        s3_key = await self.s3_client.upload_file(path, file)
+        photo_model = Photo(**photo.model_dump(), s3_key=s3_key)
 
         return await self.photo_repository.create_photo(
             photo=photo_model, user_id=user_id

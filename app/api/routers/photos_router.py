@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Body, Path, Query
+from fastapi import APIRouter, Body, File, Path, Query, UploadFile
 
 from app.dependencies import PhotoClientDep
 from app.schemas.photo import (
@@ -16,9 +16,13 @@ router = APIRouter()
 
 
 @router.post("/", response_model=PhotoCreateResponse)
-async def create_photo(photo_client: PhotoClientDep, payload: PhotoCreate = Body(...)):
+async def create_photo(
+    photo_client: PhotoClientDep,
+    payload: PhotoCreate = Body(...),
+    file: UploadFile = File(...),
+):
     user_id = 1  # TODO: update mocked user id
-    await photo_client.create_photo(photo=payload, user_id=user_id)
+    await photo_client.create_photo(photo=payload, user_id=user_id, file=file)
     return PhotoCreateResponse(description="Photo created successfully")
 
 
