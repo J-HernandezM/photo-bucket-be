@@ -15,6 +15,7 @@ class BasePhotoRequest(BaseModel):
 
 
 class PhotoRead(BasePhotoRequest):
+    url: str = Field(..., description="S3 presigned URL")
     pass
 
 

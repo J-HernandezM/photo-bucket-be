@@ -54,7 +54,12 @@ class PhotoService:
 
     async def get_photo_by_id(self, id: int) -> PhotoRead:
         photo = await self._get_photo_model_by_id(id)
-        return PhotoRead.model_validate(photo, from_attributes=True)
+        url = await self.s3_client.get_file_presigned_url(photo.s3_key)
+        photo_obj = {"url": url, **photo.__dict__}
+        return PhotoRead.model_validate(
+            photo_obj,
+            from_attributes=True,
+        )
 
     async def get_user_photos(
         self, user_id: int, skip: int = 0, limit: int = 10
@@ -69,9 +74,15 @@ class PhotoService:
                 extra_details=f"No photos were found for user {user_id}"
             )
 
-        photos_schema = [
-            PhotoRead.model_validate(photo, from_attributes=True) for photo in photos
-        ]
+        photos_schema = []
+        keys = [photo.s3_key for photo in photos]
+        urls = await self.s3_client.bulk_get_file_presigned_url(keys)
+
+        # leverages asyncio.gather order preservation to assign urls
+        for i, photo in enumerate(photos):
+            photo_obj = {"url": urls[i], **photo.__dict__}
+            photo_read = PhotoRead.model_validate(photo_obj, from_attributes=True)
+            photos_schema.append(photo_read)
 
         return UserPhotosResponse(
             photos=photos_schema, total=total, skip=skip, limit=limit
