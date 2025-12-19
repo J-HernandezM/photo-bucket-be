@@ -27,6 +27,13 @@ class AwsS3ClientInterface(ABC):
     @abstractmethod
     async def get_file_presigned_url(self, key: str) -> str:
         """Fetch a file from the s3 bucket and return a presigned URL"""
+        pass
+
+    @abstractmethod
+    async def bulk_get_file_presigned_url(
+        self, keys: list[str], expiration: int = 3600
+    ) -> list[str]:
+        """Returns a list of presigned-urls for the given s3 keys with a specified expiration"""
 
 
 class AwsS3Client(AwsS3ClientInterface):
@@ -68,6 +75,21 @@ class AwsS3Client(AwsS3ClientInterface):
 
         return key
 
+    async def _get_file_presigned_url(
+        self, key: str, s3_client: S3Client, expiration: int = 3600
+    ):
+        try:
+            url = await s3_client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": self._bucket, "Key": key},
+                ExpiresIn=expiration,
+            )
+
+            return url
+        except Exception as e:
+            logger.error(f"Error while getting the object: {key}")
+            raise e
+
     async def upload_file(self, path_to_s3: str, file: UploadFile) -> str:
         async with self._get_client() as s3_client:
             s3_path = await self._upload_file(
@@ -87,16 +109,22 @@ class AwsS3Client(AwsS3ClientInterface):
 
         return s3_paths
 
-    async def get_file_presigned_url(self, key: str, expiration: int = 3600):
+    async def get_file_presigned_url(self, key: str, expiration: int = 3600) -> str:
         async with self._get_client() as s3_client:
-            try:
-                url = await s3_client.generate_presigned_url(
-                    "get_object",
-                    Params={"Bucket": self._bucket, "Key": key},
-                    ExpiresIn=expiration,
-                )
+            url = await self._get_file_presigned_url(
+                key=key, s3_client=s3_client, expiration=expiration
+            )
+        return url
 
-                return url
-            except Exception as e:
-                logger.error(f"Error while getting the object: {key}")
-                raise e
+    async def bulk_get_file_presigned_url(
+        self, keys: list[str], expiration: int = 3600
+    ) -> list[str]:
+        async with self._get_client() as s3_client:
+            tasks = [
+                self._get_file_presigned_url(
+                    key=key, s3_client=s3_client, expiration=expiration
+                )
+                for key in keys
+            ]
+            urls = await asyncio.gather(*tasks)
+        return urls
