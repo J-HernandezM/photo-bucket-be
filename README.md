@@ -43,6 +43,7 @@ Set these in a `.env` file at the project root (use `.env.example` as a template
 - CONTAINER_AWS_ENDPOINT_URL: LocalStack endpoint from inside containers; use `http://localstack:4566` (service name).
 - AWS_REGION: AWS region to target (e.g., `us-east-1`).
 - AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: Required by boto in LocalStack dev (use `test`/`test`); in AWS (ECS), omit and rely on the task role.
+- BUCKET_NAME: The S3 bucket where photos are going to be stored.
 
 Note: docker-compose already maps the API’s `DATABASE_URL` from `CONTAINER_DATABASE_URL`. For LocalStack inside the container, map `AWS_ENDPOINT_URL` to `CONTAINER_AWS_ENDPOINT_URL` in the service environment if needed.
 
