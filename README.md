@@ -1,6 +1,4 @@
 # photo-bucket-be
-Video demo: https://www.youtube.com/watch?v=8n844vaW-m8
-
 Photo Bucket is a personal photo storage and management service. It provides an API for uploading, organizing, and retrieving images, along with support for metadata, albums, and efficient media handling. The goal is to offer a self-hosted solution where users can securely manage their own photo library with full control over storage, processing, and access.
 
 ## Project Structure & Architecture
