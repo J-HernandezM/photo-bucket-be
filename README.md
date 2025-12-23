@@ -2,6 +2,36 @@
 
 Photo Bucket is a personal photo storage and management service. It provides an API for uploading, organizing, and retrieving images, along with support for metadata, albums, and efficient media handling. The goal is to offer a self-hosted solution where users can securely manage their own photo library with full control over storage, processing, and access.
 
+## Project Structure & Architecture
+
+This project follows a **hexagonal architecture** (ports and adapters) pattern, promoting clean separation of concerns and testability.
+
+### Design Patterns
+
+- **Hexagonal Architecture**: Core business logic is isolated from external dependencies (databases, external services)
+- **Repository Pattern**: Data access is abstracted through repositories, providing a clean interface to the persistence layer
+- **Adapter Pattern**: External services (S3, database clients) are adapted into the core domain through well-defined interfaces
+- **Dependency Injection**: Dependencies are injected at runtime, enabling loose coupling and easier testing
+
+### Directory Structure
+
+```
+app/
+├── api/
+│   └── routers/          # FastAPI route handlers (HTTP endpoints)
+├── models/               # SQLAlchemy ORM models (database schema)
+├── schemas/              # Pydantic models (request/response validation)
+├── services/             # Business logic layer (orchestration & use cases)
+├── repositories/         # Data access abstraction (database queries)
+├── clients/              # External service adapters (S3, etc.)
+├── dependencies.py       # Dependency injection setup
+├── db.py                 # Database configuration
+├── config.py             # Application configuration
+└── main.py               # FastAPI app initialization
+```
+
+**Data Flow**: HTTP Request → Router → Service → Repository/Client → Database/External Service
+
 ## Running Locally with Docker
 
 This project includes a full Dockerized development environment, using `Dockerfile-dev` and `docker-compose.yml` to run both the API and the database.
@@ -119,7 +149,11 @@ awslocal s3 cp s3://photo-bucket-dev/uploads/file.jpg ./downloaded.jpg
 
 ### Volume Persistence
 
-LocalStack uses a named volume (`localstack_data`) to persist state across container restarts. To reset LocalStack completely:
+LocalStack uses a named volume (`localstack_data`) to persist state across container restarts.
+However, **resources (S3 buckets, etc.) are deleted when running `docker compose down`** because the container is removed. This project uses the `localstack-persist` community [image](https://github.com/GREsau/localstack-persist) instead of the official LocalStack image because persistence is now a [paid feature in LocalStack's subscription model](https://github.com/localstack/localstack/issues/6281#issuecomment-1169731265).
+Even with the community image, `docker compose down` will destroy resources since containers and volumes are reset—to fully preserve LocalStack state, use `docker compose stop` instead of `docker compose down`.
+
+To reset LocalStack completely:
 
 ```bash
 docker compose down
