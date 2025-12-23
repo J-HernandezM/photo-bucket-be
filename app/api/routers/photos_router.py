@@ -1,5 +1,6 @@
+import json
 from typing import Optional
-from fastapi import APIRouter, Body, File, Path, Query, UploadFile
+from fastapi import APIRouter, Body, File, Form, Path, Query, UploadFile
 
 from app.dependencies import PhotoClientDep
 from app.schemas.photo import (
@@ -18,11 +19,20 @@ router = APIRouter()
 @router.post("/", response_model=PhotoCreateResponse)
 async def create_photo(
     photo_client: PhotoClientDep,
-    payload: PhotoCreate = Body(...),
+    payload: str = Form(...),
     file: UploadFile = File(...),
 ):
+    # TODO: enhance how the form is sent in the request along with the file
+    photo_data = json.loads(payload)
+    photo_create = PhotoCreate(**photo_data)
+
     user_id = 1  # TODO: update mocked user id
-    await photo_client.create_photo(photo=payload, user_id=user_id, file=file)
+    await photo_client.create_photo(
+        file=file,
+        photo=photo_create,
+        user_id=user_id,
+    )
+    # await photo_client.create_photo(photo=payload, user_id=user_id, file=file)
     return PhotoCreateResponse(description="Photo created successfully")
 
 
