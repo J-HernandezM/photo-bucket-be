@@ -1,3 +1,5 @@
+from fastapi import UploadFile
+from app.clients.s3_client import AwsS3ClientInterface
 from app.exceptions import ForbiddenError, PhotoNotFound
 from app.models.photo import Photo
 from app.repositories.photo_repository import PhotoRepositoryInterface
@@ -5,8 +7,13 @@ from app.schemas.photo import PhotoCreate, PhotoRead, UserPhotosResponse
 
 
 class PhotoService:
-    def __init__(self, photo_repository: PhotoRepositoryInterface):
+    def __init__(
+        self,
+        photo_repository: PhotoRepositoryInterface,
+        s3_client: AwsS3ClientInterface,
+    ):
         self.photo_repository = photo_repository
+        self.s3_client = s3_client
 
     async def _get_photo_model_by_id(self, id: int) -> Photo:
         photo = await self.photo_repository.get_photo_by_id(id)
@@ -33,9 +40,13 @@ class PhotoService:
                 detail="The requested photo does not belongs to the user"
             )
 
-    async def create_photo(self, photo: PhotoCreate, user_id: int) -> None:
+    async def create_photo(
+        self, photo: PhotoCreate, user_id: int, file: UploadFile
+    ) -> None:
         # TODO: add user validation later
-        photo_model = Photo(**photo.model_dump())
+        path = "mocked/path"  # TODO: define path, probably use user identifier as main folder
+        s3_key = await self.s3_client.upload_file(path, file)
+        photo_model = Photo(**photo.model_dump(), s3_key=s3_key)
 
         return await self.photo_repository.create_photo(
             photo=photo_model, user_id=user_id
@@ -43,7 +54,12 @@ class PhotoService:
 
     async def get_photo_by_id(self, id: int) -> PhotoRead:
         photo = await self._get_photo_model_by_id(id)
-        return PhotoRead.model_validate(photo, from_attributes=True)
+        url = await self.s3_client.get_file_presigned_url(photo.s3_key)
+        photo_obj = {"url": url, **photo.__dict__}
+        return PhotoRead.model_validate(
+            photo_obj,
+            from_attributes=True,
+        )
 
     async def get_user_photos(
         self, user_id: int, skip: int = 0, limit: int = 10
@@ -58,9 +74,15 @@ class PhotoService:
                 extra_details=f"No photos were found for user {user_id}"
             )
 
-        photos_schema = [
-            PhotoRead.model_validate(photo, from_attributes=True) for photo in photos
-        ]
+        photos_schema = []
+        keys = [photo.s3_key for photo in photos]
+        urls = await self.s3_client.bulk_get_file_presigned_url(keys)
+
+        # leverages asyncio.gather order preservation to assign urls
+        for i, photo in enumerate(photos):
+            photo_obj = {"url": urls[i], **photo.__dict__}
+            photo_read = PhotoRead.model_validate(photo_obj, from_attributes=True)
+            photos_schema.append(photo_read)
 
         return UserPhotosResponse(
             photos=photos_schema, total=total, skip=skip, limit=limit

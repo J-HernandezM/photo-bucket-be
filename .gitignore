@@ -211,3 +211,7 @@ __marimo__/
 .python-version
 
 .vscode/
+
+# Localstack mirror volume
+volume/
+local_utility/

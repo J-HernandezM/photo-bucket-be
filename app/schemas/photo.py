@@ -15,6 +15,7 @@ class BasePhotoRequest(BaseModel):
 
 
 class PhotoRead(BasePhotoRequest):
+    url: str = Field(..., description="S3 presigned URL")
     pass
 
 
@@ -32,7 +33,7 @@ class UserPhotosResponse(BaseModel):
 
 
 class PhotoResponse(BaseModel):
-    description: str = Field(..., description="Result of the photo creation")
+    description: str = Field(..., description="Result of the photo operation")
 
 
 class PhotoCreateResponse(PhotoResponse):

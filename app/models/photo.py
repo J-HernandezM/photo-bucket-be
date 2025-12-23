@@ -8,6 +8,7 @@ class Photo(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
     filename: Mapped[str] = mapped_column(String(128), nullable=False)
+    s3_key: Mapped[str] = mapped_column(String(256), nullable=False)
     content_type: Mapped[str] = mapped_column(String(32), nullable=False)
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     date_taken: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
